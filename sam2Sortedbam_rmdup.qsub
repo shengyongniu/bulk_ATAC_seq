@@ -1,0 +1,27 @@
+#!/bin/bash -l
+
+# Now let's keep track of some information just in case anything goes wrong
+echo "=========================================================="
+echo "Starting on : $(date)"
+echo "Running on node : $(hostname)"
+echo "Current directory : $(pwd)"
+echo "Current job ID : $JOB_ID"
+echo "Current job name : $JOB_NAME"
+echo "Task index number : $SGE_TASK_ID"
+echo "=========================================================="
+
+
+module load java
+module load picard/2.8.0
+
+
+
+INFILE=`find  /restricted/projectnb/chengcancer/Simon/project/T2D/ATAC-seq/NextSeq/2mapping/*.sam  | sed 's/.sam//'| head -${SGE_TASK_ID} |tail -1`
+echo "NOW in TASK ${SGE_TASK_ID} : PROCESSING $INFILE ..."
+
+java  -jar /share/pkg/picard/2.8.0/install/lib/picard.jar SortSam INPUT=${INFILE}.sam  OUTPUT=${INFILE}.sorted.bam  SORT_ORDER=coordinate TMP_DIR=`pwd`/tmp
+
+java  -jar /share/pkg/picard/2.8.0/install/lib/picard.jar MarkDuplicates  INPUT=${INFILE}.sorted.bam OUTPUT=${INFILE}.sorted.dedup.bam  METRICS_FILE=$(basename "$filename" .sam).txt REMOVE_DUPLICATES=TRUE
+
+
+

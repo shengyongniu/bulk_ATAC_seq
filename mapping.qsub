@@ -1,0 +1,44 @@
+#!/bin/bash -l
+
+# we are going to set these paramenters through cmdline (but you can always hardcoded the parameters if they are going to be fixed.:
+
+# #$ -P chengcancer
+# #$ -N "tophat_mapping_y"
+# #$ -j y
+# ##$ -o "tophat_mapping_y.qlog"
+
+# #$ -pe omp 36
+# #$ -v OMP_NUM_THREADS=36
+# #$ -l mem_total=504G
+# #$ -l h_rt=48:00:00
+# #$ -t 1-2
+
+# combine output/error log together
+#$ -j y
+
+#  You may set the email notification about job status:
+#  (b = when job begins, a = if job aborts, e = when job ends)
+# #$ -m bae
+
+# Whom to send the email to
+# #$ -M {your_username}@bu.edu
+
+# Now let's keep track of some information just in case anything goes wrong
+echo "=========================================================="
+echo "Starting on : $(date)"
+echo "Running on node : $(hostname)"
+echo "Current directory : $(pwd)"
+echo "Current job ID : $JOB_ID"
+echo "Current job name : $JOB_NAME"
+echo "Task index number : $SGE_TASK_ID"
+echo "=========================================================="
+
+module load bowtie2
+
+
+INFILE=`find  /restricted/projectnb/chengcancer/Simon/project/T2D/ATAC-seq/NextSeq/0raw/merge/*1P.fq.gz  | sed 's/_1P.fq.gz$//'| head -${SGE_TASK_ID} |tail -1`
+echo "NOW in TASK ${SGE_TASK_ID} : PROCESSING $INFILE ..."
+
+
+bowtie2 -p 1 -X 2000 -x /restricted/projectnb/chengcancer/nsun/ReferenceData/GenomeData/Bowtie2/hg38/hg38 -1  ${INFILE}_1P.fq.gz  -2  ${INFILE}_2P.fq.gz  -S  ${INFILE}.sam
+
