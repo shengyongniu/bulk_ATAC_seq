@@ -1,25 +1,15 @@
 #!/bin/bash -l
 
-# Now let's keep track of some information just in case anything goes wrong
-echo "=========================================================="
-echo "Starting on : $(date)"
-echo "Running on node : $(hostname)"
-echo "Current directory : $(pwd)"
-echo "Current job ID : $JOB_ID"
-echo "Current job name : $JOB_NAME"
-echo "Task index number : $SGE_TASK_ID"
-echo "=========================================================="
-
 
 module load bedtools/2.24.0
 module load samtools/1.1
 module load java
 module load picard/2.8.0
 
-INFILE=`find  /restricted/projectnb/chengcancer/Simon/project/T2D/ATAC-seq/NextSeq/3readsFilter/*.sorted.dedup.bam  | sed 's/.bam//'| head -${SGE_TASK_ID} |tail -1`
+INFILE=`find  ./*.sorted.dedup.bam  | sed 's/.bam//'| head -${SGE_TASK_ID} |tail -1`
 echo "NOW in TASK ${SGE_TASK_ID} : PROCESSING $INFILE ..."
 
-java  -jar /share/pkg/picard/2.8.0/install/lib/picard.jar BuildBamIndex  INPUT=${INFILE}.bam
+java  -jar picard.jar BuildBamIndex  INPUT=${INFILE}.bam
 samtools idxstats ${INFILE}.bam | cut -f 1 | grep -v chrY | grep -v chrM  | grep -v chrUn | xargs samtools view -b ${INFILE}.bam > ${INFILE}.trimmed.bam
 
 bedtools bamtobed -i ${INFILE}.trimmed.bam  > ${INFILE}.trimmed.bed
